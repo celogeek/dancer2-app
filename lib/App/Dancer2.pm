@@ -31,6 +31,11 @@ option 'app_mode' => (
     default => sub { 'basic' },
 );
 
+option 'git' => (
+    is => 'ro',
+    doc => 'initialize a git repository',
+);
+
 sub create_app {
     my $self = shift;
 
@@ -43,6 +48,7 @@ sub create_app {
     croak "This mode doesn't exist" if ! -e $dist_dir;
     
     $self->_copy_dist($dist_dir, $path);
+    $self->_init_git($path) if $self->git;
 
     return;
 }
@@ -79,6 +85,18 @@ sub _copy_dist {
             }
     });
     return;
+}
+
+sub _init_git {
+    my ($self, $to) = @_;
+    $to = dir($to) unless ref $to eq 'Path::Class::Dir';
+
+    say "Init git repository $to ...";
+
+    Git::Repository->run(init => { cwd => $to});
+    my $r = Git::Repository->new( work_tree => $to);
+    $r->run(add => '.');
+    $r->run(commit => '-m', 'init dancer2 project');
 }
 
 1;
