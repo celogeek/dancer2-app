@@ -10,6 +10,7 @@ use feature 'say';
 use Moo;
 use MooX::Options;
 use File::ShareDir ':ALL';
+use File::Path qw/mkpath/;
 use Path::Class;
 use Git::Repository;
 
@@ -17,9 +18,17 @@ option 'app' => (
     is => 'ro',
     doc => 'Create a new apps',
     format => 's',
-    trigger => sub {
-        shift->create_app;
+    isa => sub {
+        croak "not a valid app name: [a-zA-Z0-9]+" unless $_[0] =~ /^[a-zA-Z0-9]+$/;
+
     }
+);
+
+option 'app_mode' => (
+    is => 'ro',
+    doc => 'Use mode: basic',
+    format => 's',
+    default => sub { 'basic' },
 );
 
 sub create_app {
@@ -30,9 +39,10 @@ sub create_app {
 
     say "Creating app : ", $self->app;
 
-    my $dist_dir = _dist_dir('App-Dancer2');
-    croak $dist_dir;
+    my $dist_dir = _dist_dir('App-Dancer2')->subdir('app')->subdir($self->app_mode);
+    croak "This mode doesn't exist" if ! -e $dist_dir;
     
+    $self->_copy_dist($dist_dir, $path);
 
     return;
 }
@@ -43,7 +53,27 @@ sub _dist_dir {
     } else {
         return file(__FILE__)->dir->parent->parent->subdir('share');
     }
+}
 
+sub _copy_dist {
+    my ($self, $from, $to) = @_;
+    my $app = $self->app;
+    $from = dir($from) unless ref $from eq 'Path::Class::Dir';
+    $to = dir($to) unless ref $to eq 'Path::Class::Dir';
+    $from->recurse(callback => sub {
+            my $child = shift;
+            my $dest = dir($to, substr($child, length($from)));
+            $dest =~ s/\Q[%APP%]\E/$app/g;
+            $dest = dir($dest);
+            if (-d $child) {
+                say "Creating $dest ...";
+                mkpath($dest);
+            } else {
+                say "Copying to $dest ...";
+
+            }
+    });
+    return;
 }
 
 1;
