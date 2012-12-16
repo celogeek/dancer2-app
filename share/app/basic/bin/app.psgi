@@ -2,6 +2,6 @@
 use strict;
 use warnings;
 use Dancer;
-use [%APP];
+use [%APP%];
 
 start;

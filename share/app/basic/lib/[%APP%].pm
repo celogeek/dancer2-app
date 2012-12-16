@@ -1,4 +1,4 @@
-package [%APP];
+package [%APP%];
 use strict;
 use warnings;
 use Dancer;
