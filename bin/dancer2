@@ -1,0 +1,6 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use App::Dancer2;
+
+my $app = App::Dancer2->new_with_options;
