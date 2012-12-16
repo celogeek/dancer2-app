@@ -44,7 +44,7 @@ sub create_app {
 
     say "Creating app : ", $self->app;
 
-    my $dist_dir = _dist_dir('App-Dancer2')->subdir('app')->subdir($self->app_mode);
+    my $dist_dir = $self->_dist_dir('App-Dancer2')->subdir('app')->subdir($self->app_mode);
     croak "This mode doesn't exist" if ! -e $dist_dir;
     
     $self->_copy_dist($dist_dir, $path);
@@ -55,7 +55,7 @@ sub create_app {
 
 sub _dist_dir {
     if ($App::Dancer2::VERSION) {
-        return dist_dir('App-Dancer2');
+        return dir(dist_dir('App-Dancer2'));
     } else {
         return file(__FILE__)->dir->parent->parent->subdir('share');
     }
