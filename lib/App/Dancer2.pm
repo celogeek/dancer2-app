@@ -31,7 +31,7 @@ option 'app_mode' => (
     default => sub { 'basic' },
 );
 
-option 'git' => (
+option 'app_with_git' => (
     is => 'ro',
     doc => 'initialize a git repository',
 );
@@ -48,7 +48,7 @@ sub create_app {
     croak "This mode doesn't exist" if ! -e $dist_dir;
     
     $self->_copy_dist($dist_dir, $path);
-    $self->_init_git($path) if $self->git;
+    $self->_init_git($path) if $self->app_with_git;
 
     return;
 }
