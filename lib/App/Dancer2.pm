@@ -4,8 +4,9 @@ use warnings;
 use Moo;
 use MooX::Options;
 use feature 'say';
-use Git::Raw;
+use Git::Repository;
 use File::Spec;
+use Carp;
 
 option 'app' => (
     is => 'ro',
@@ -18,20 +19,17 @@ option 'app' => (
 
 sub create_app {
     my $self = shift;
-    say "Creating app : ", $self->app;
+
+    my $path = File::Spec->catfile($ENV{PWD}, $self->app);
+    croak "$path already exist !" if -e $path;
 
     my $url = 'git://gitorious.celogeek.com/perl-dancer2/basic.git';
-    my $path = File::Spec->catfile($ENV{PWD}, $self->app);
-    my $repo = Git::Raw::Repository->init($path, 0);
-    my $remote = Git::Raw::Remote->add($repo, 'origin', $url);
-    $remote->connect('fetch');
-    $remote->download;
-    $remote->update_tips;
-    $remote->disconnect;
-    $repo->checkout($repo->head, {
-            'update_missing'  => 1,
-            'update_modified' => 1
-        });
+    say "Creating app : ", $self->app;
+    Git::Repository->run(init => $path);
+    my $repo = Git::Repository->new(work_tree => $path);
+    $repo->run(remote => 'add', 'origin', $url);
+    $repo->run(pull => '-u', 'origin', 'master');
+    $repo->run(remote => 'remove', 'origin');
     return;
 }
 
