@@ -1,4 +1,4 @@
-package [%APP];
+package [%APP_MODULE];
 use strict;
 use warnings;
 use Dancer;
