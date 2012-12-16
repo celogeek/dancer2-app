@@ -1,6 +1,10 @@
 #!/usr/bin/env perl
+# PODNAME: dancer2
+# ABSTRACT: dancer2 tools
 use strict;
 use warnings;
+# VERSION
+#
 use App::Dancer2;
 
 my $app = App::Dancer2->new_with_options;

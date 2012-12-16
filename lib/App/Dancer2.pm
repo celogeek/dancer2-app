@@ -1,12 +1,17 @@
 package App::Dancer2;
+
+# ABSTRACT: App to use dancer2 in your project
+
 use strict;
 use warnings;
+# VERSION
+use Carp;
+use feature 'say';
 use Moo;
 use MooX::Options;
-use feature 'say';
+use File::ShareDir ':ALL';
+use Path::Class;
 use Git::Repository;
-use File::Spec;
-use Carp;
 
 option 'app' => (
     is => 'ro',
@@ -20,17 +25,25 @@ option 'app' => (
 sub create_app {
     my $self = shift;
 
-    my $path = File::Spec->catfile($ENV{PWD}, $self->app);
+    my $path = dir($ENV{PWD}, $self->app);
     croak "$path already exist !" if -e $path;
 
-    my $url = 'git://gitorious.celogeek.com/perl-dancer2/basic.git';
     say "Creating app : ", $self->app;
-    Git::Repository->run(init => $path);
-    my $repo = Git::Repository->new(work_tree => $path);
-    $repo->run(remote => 'add', 'origin', $url);
-    $repo->run(pull => '-u', 'origin', 'master');
-    $repo->run(remote => 'remove', 'origin');
+
+    my $dist_dir = _dist_dir('App-Dancer2');
+    croak $dist_dir;
+    
+
     return;
+}
+
+sub _dist_dir {
+    if ($App::Dancer2::VERSION) {
+        return dist_dir('App-Dancer2');
+    } else {
+        return file(__FILE__)->dir->parent->parent->subdir('share');
+    }
+
 }
 
 1;
