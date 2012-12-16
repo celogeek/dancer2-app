@@ -10,7 +10,7 @@ use feature 'say';
 use Moo;
 use MooX::Options;
 use File::ShareDir ':ALL';
-use File::Path qw/mkpath/;
+use File::Path qw/make_path/;
 use Path::Class;
 use Git::Repository;
 
@@ -64,13 +64,18 @@ sub _copy_dist {
             my $child = shift;
             my $dest = dir($to, substr($child, length($from)));
             $dest =~ s/\Q[%APP%]\E/$app/g;
-            $dest = dir($dest);
             if (-d $child) {
+                $dest = dir($dest);
                 say "Creating $dest ...";
-                mkpath($dest);
+                make_path($dest, {
+                        verbose => 0,
+                });
             } else {
+                $dest = file($dest);
                 say "Copying to $dest ...";
-
+                my $content = $child->slurp;
+                $content =~ s/\Q[%APP%]\E/$app/g;
+                $dest->spew($content);
             }
     });
     return;
