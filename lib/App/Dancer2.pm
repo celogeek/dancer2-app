@@ -31,11 +31,6 @@ option 'app_mode' => (
     default => sub { 'basic' },
 );
 
-option 'app_with_git' => (
-    is => 'ro',
-    doc => 'initialize a git repository',
-);
-
 sub create_app {
     my $self = shift;
 
@@ -48,7 +43,7 @@ sub create_app {
     croak "This mode doesn't exist" if ! -e $dist_dir;
     
     $self->_copy_dist($dist_dir, $path);
-    $self->_init_git($path) if $self->app_with_git;
+    $self->_init_git($path);
 
     return;
 }
@@ -77,6 +72,7 @@ sub _copy_dist {
                         verbose => 0,
                 });
             } else {
+                $dest = substr($dest, 0, -4);
                 $dest = file($dest);
                 say "Copying to $dest ...";
                 my $content = $child->slurp;
