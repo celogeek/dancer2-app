@@ -93,6 +93,8 @@ sub _init_git {
     my $r = Git::Repository->new( work_tree => $to);
     $r->run(add => '.');
     $r->run(commit => '-m', 'init dancer2 project');
+    $r->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2');
+    $r->run(commit => '-m', 'plug git dancer2 head');
 }
 
 1;
