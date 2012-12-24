@@ -88,11 +88,11 @@ sub _init_git {
     $to = dir($to) unless ref $to eq 'Path::Class::Dir';
 
     say "Init git repository $to ...";
-
     Git::Repository->run(init => { cwd => $to});
     my $r = Git::Repository->new( work_tree => $to);
     $r->run(add => '.');
     $r->run(commit => '-m', 'init dancer2 project');
+    say "Fetching vendors/Dancer2";
     $r->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2');
     $r->run(commit => '-m', 'plug git dancer2 head');
 }
