@@ -13,6 +13,8 @@ use File::ShareDir ':ALL';
 use File::Path qw/make_path/;
 use Path::Class;
 use Git::Repository;
+use LWP::Curl;
+use Archive::Extract;
 
 option 'app' => (
     is => 'ro',
@@ -31,6 +33,11 @@ option 'app_mode' => (
     default => sub { 'basic' },
 );
 
+option 'app_with_git' => (
+    is => 'ro',
+    doc => 'Use a pure git repository for your apps',
+);
+
 sub create_app {
     my $self = shift;
 
@@ -43,7 +50,11 @@ sub create_app {
     croak "This mode doesn't exist" if ! -e $dist_dir;
     
     $self->_copy_dist($dist_dir, $path);
-    $self->_init_git($path);
+    if ($self->app_with_git) {
+        $self->_init_git($path);
+    } else {
+        $self->_fetch_latest_dancer2($path);
+    }
 
     return;
 }
@@ -95,6 +106,20 @@ sub _init_git {
     say "Fetching vendors/Dancer2";
     $r->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2');
     $r->run(commit => '-m', 'plug git dancer2 head');
+}
+
+sub _fetch_latest_dancer2 {
+    my ($self, $to) = @_;
+    my $dest = $to->subdir('vendors');
+    make_path($dest, { verbose => 0 });
+    say "Fetching latest dancer2 archive ...";
+    my $lwpc = LWP::Curl->new();
+    my $content = $lwpc->get('https://github.com/PerlDancer/Dancer2/archive/master.zip');
+    say "Extract archive ...";
+    my $tmp = file('/tmp/dancer2.zip');
+    $tmp->spew($content);
+    my $ae = Archive::Extract->new(archive => $tmp);
+    $ae->extract(to => $dest);
 }
 
 1;
