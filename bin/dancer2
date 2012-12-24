@@ -10,4 +10,6 @@ use App::Dancer2;
 my $opt = App::Dancer2->new_with_options;
 if ($opt->app) {
     $opt->create_app;
+} else {
+    $opt->options_usage;
 }
