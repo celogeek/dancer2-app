@@ -29,7 +29,7 @@ option 'app' => (
     doc => 'Create a new apps',
     format => 's',
     isa => sub {
-        croak "not a valid app name: [a-zA-Z0-9]+" unless $_[0] =~ /^[a-zA-Z0-9]+$/;
+        croak "not a valid app name: [a-zA-Z0-9]+" unless $_[0] =~ /^[a-zA-Z0-9]+$/x;
 
     }
 );
@@ -103,7 +103,7 @@ sub _copy_dist {
     $from->recurse(callback => sub {
             my $child = shift;
             my $dest = dir($to, substr($child, length($from)));
-            $dest =~ s/\Q[%APP%]\E/$app/g;
+            $dest =~ s/\Q[%APP%]\E/$app/gx;
             if (-d $child) {
                 $dest = dir($dest);
                 say "Creating $dest ...";
@@ -115,7 +115,7 @@ sub _copy_dist {
                 $dest = file($dest);
                 say "Copying to $dest ...";
                 my $content = $child->slurp;
-                $content =~ s/\Q[%APP%]\E/$app/g;
+                $content =~ s/\Q[%APP%]\E/$app/gx;
                 $dest->spew($content);
             }
     });
