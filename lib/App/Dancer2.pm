@@ -15,6 +15,7 @@ use Path::Class;
 use Git::Repository;
 use LWP::Curl;
 use Archive::Extract;
+use DateTime;
 
 =attr app
 
@@ -39,13 +40,22 @@ You can select between multiple mode.
 
 Mode 'basic' : simple configuration without database
 
+Mode 'distzilla' : same as basic, with a default distzilla project. It will allow to deploy your apps with dzil --release command.
+
 =cut
 
 option 'app_mode' => (
     is => 'ro',
-    doc => 'Use mode: basic',
+    doc => 'Use mode: basic, distzilla',
     format => 's',
     default => sub { 'basic' },
+    trigger => sub {
+        my ($self, $val) = @_;
+        if ($val eq 'distzilla') {
+            $self->app_with_git(1);
+        }
+        return;
+    }
 );
 
 =attr app_with_git
@@ -55,7 +65,7 @@ Initialize git apps. It will use the submodule mode to fetch dancer2 instead of 
 =cut
 
 option 'app_with_git' => (
-    is => 'ro',
+    is => 'rw',
     doc => 'Use a pure git repository for your apps',
 );
 
@@ -97,6 +107,8 @@ sub _dist_dir {
 sub _copy_dist {
     my ($self, $from, $to) = @_;
     my $app = $self->app;
+    my $now = DateTime->now();
+    my $current_year = $now->year;
     $from = dir($from) unless ref $from eq 'Path::Class::Dir';
     $to = dir($to) unless ref $to eq 'Path::Class::Dir';
     $from->recurse(callback => sub {
@@ -115,6 +127,7 @@ sub _copy_dist {
                 say "Copying to $dest ...";
                 my $content = $child->slurp;
                 $content =~ s/\Q[%APP%]\E/$app/gx;
+                $content =~ s/\Q[%CURRENT_YEAR%]\E/$current_year/gx;
                 $dest->spew($content);
             }
     });
