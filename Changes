@@ -1,3 +1,4 @@
 {{$NEXT}}
 
-    Init
+    First release. Simple dancer app to create application.
+    It support git mode or direct mode.
