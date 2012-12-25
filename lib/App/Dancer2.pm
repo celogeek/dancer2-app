@@ -16,6 +16,14 @@ use Git::Repository;
 use LWP::Curl;
 use Archive::Extract;
 
+=attr app
+
+The app params will create a new dancer2 apps with basic configuration.
+
+dancer2 --app myApps
+
+=cut
+
 option 'app' => (
     is => 'ro',
     doc => 'Create a new apps',
@@ -26,6 +34,14 @@ option 'app' => (
     }
 );
 
+=attr app_mode
+
+You can select between multiple mode.
+
+Mode 'basic' : simple configuration without database
+
+=cut
+
 option 'app_mode' => (
     is => 'ro',
     doc => 'Use mode: basic',
@@ -33,10 +49,22 @@ option 'app_mode' => (
     default => sub { 'basic' },
 );
 
+=attr app_with_git
+
+Initialize git apps. It will use the submodule mode to fetch dancer2 instead of fetching the zip file
+
+=cut
+
 option 'app_with_git' => (
     is => 'ro',
     doc => 'Use a pure git repository for your apps',
 );
+
+=meth create_app
+
+    Initialize an new apps. Used inside the binary apps dancer2.
+
+=cut
 
 sub create_app {
     my $self = shift;
