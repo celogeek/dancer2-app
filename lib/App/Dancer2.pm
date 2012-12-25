@@ -30,7 +30,6 @@ option 'app' => (
     format => 's',
     isa => sub {
         croak "not a valid app name: [a-zA-Z0-9]+" unless $_[0] =~ /^[a-zA-Z0-9]+$/x;
-
     }
 );
 
@@ -134,6 +133,7 @@ sub _init_git {
     say "Fetching vendors/Dancer2";
     $r->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2');
     $r->run(commit => '-m', 'plug git dancer2 head');
+    return;
 }
 
 sub _fetch_latest_dancer2 {
@@ -148,6 +148,7 @@ sub _fetch_latest_dancer2 {
     $tmp->spew($content);
     my $ae = Archive::Extract->new(archive => $tmp);
     $ae->extract(to => $dest);
+    return;
 }
 
 1;
