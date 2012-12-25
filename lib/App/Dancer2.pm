@@ -59,7 +59,7 @@ option 'app_with_git' => (
     doc => 'Use a pure git repository for your apps',
 );
 
-=meth create_app
+=method create_app
 
     Initialize an new apps. Used inside the binary apps dancer2.
 
