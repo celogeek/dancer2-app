@@ -129,6 +129,9 @@ sub _copy_dist {
                 $content =~ s/\Q[%APP%]\E/$app/gx;
                 $content =~ s/\Q[%CURRENT_YEAR%]\E/$current_year/gx;
                 $dest->spew($content);
+                if (substr($dest, -3) eq '.sh') {
+                    chmod 0755, $dest;
+                }
             }
     });
     return;
