@@ -134,7 +134,7 @@ __EOF__
     close($fh);
     chmod 0755, $install;
     system($install);
-
+    return;
 }
 
 # PRIVATE METHODS
