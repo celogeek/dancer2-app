@@ -10,7 +10,6 @@ use feature 'say';
 use Moo;
 use MooX::Options;
 use File::ShareDir ':ALL';
-use File::Path qw/make_path/;
 use Path::Class;
 use Git::Repository;
 use LWP::Curl;
@@ -69,6 +68,17 @@ option 'app_with_git' => (
     doc => 'Use a pure git repository for your apps',
 );
 
+=attr install_head
+
+Install Dancer2 head with cpanm
+
+=cut
+
+option 'install_head' => (
+    is => 'rw',
+    doc => 'Install Dancer2 head with cpanm',
+);
+
 =method create_app
 
     Initialize an new apps. Used inside the binary apps dancer2.
@@ -90,11 +100,44 @@ sub create_app {
     if ($self->app_with_git) {
         $self->_init_git($path);
     } else {
-        $self->_fetch_latest_dancer2($path);
+        $self->_fetch_latest_dancer2($path->subdir('vendors'));
     }
 
     return;
 }
+
+=method install_head_with_cpanm
+
+    Install Dancer2 head with cpanm
+
+=cut
+sub install_head_with_cpanm {
+    my $self = shift;
+    my $dest = dir('/tmp/dancer2-head');
+    if (-d $dest) {
+        $dest->rmtree();
+    }
+    $self->_fetch_latest_dancer2($dest);
+    my $install = $dest->file('install.sh');
+    carp $install;
+    my $fh = $install->open('w');
+    print $fh <<'__EOF__'
+#!/usr/bin/env bash
+set -e -x
+cd /tmp/dancer2-head/Dancer2-master/
+cpanm -v Dist::Zilla
+dzil authordeps | cpanm -v
+dzil listdeps | cpanm
+dzil install --install-command="cpanm -v ."
+__EOF__
+    ;
+    close($fh);
+    chmod 0755, $install;
+    system($install);
+
+}
+
+# PRIVATE METHODS
 
 sub _dist_dir {
     if ($App::Dancer2::VERSION) {
@@ -109,8 +152,6 @@ sub _copy_dist {
     my $app = $self->app;
     my $now = DateTime->now();
     my $current_year = $now->year;
-    $from = dir($from) unless ref $from eq 'Path::Class::Dir';
-    $to = dir($to) unless ref $to eq 'Path::Class::Dir';
     $from->recurse(callback => sub {
             my $child = shift;
             my $dest = dir($to, substr($child, length($from)));
@@ -118,9 +159,7 @@ sub _copy_dist {
             if (-d $child) {
                 $dest = dir($dest);
                 say "Creating $dest ...";
-                make_path($dest, {
-                        verbose => 0,
-                });
+                $dest->mkpath(0);
             } else {
                 $dest = substr($dest, 0, -4);
                 $dest = file($dest);
@@ -138,12 +177,10 @@ sub _copy_dist {
 }
 
 sub _init_git {
-    my ($self, $to) = @_;
-    $to = dir($to) unless ref $to eq 'Path::Class::Dir';
-
-    say "Init git repository $to ...";
-    Git::Repository->run(init => { cwd => $to});
-    my $r = Git::Repository->new( work_tree => $to);
+    my ($self, $dest) = @_;
+    say "Init git repository $dest ...";
+    Git::Repository->run(init => { cwd => $dest});
+    my $r = Git::Repository->new( work_tree => $dest);
     $r->run(add => '.');
     $r->run(commit => '-m', 'init dancer2 project');
     say "Fetching vendors/Dancer2";
@@ -153,9 +190,8 @@ sub _init_git {
 }
 
 sub _fetch_latest_dancer2 {
-    my ($self, $to) = @_;
-    my $dest = $to->subdir('vendors');
-    make_path($dest, { verbose => 0 });
+    my ($self, $dest) = @_;
+    $dest->mkpath(0);
     say "Fetching latest dancer2 archive ...";
     my $lwpc = LWP::Curl->new();
     my $content = $lwpc->get('https://github.com/PerlDancer/Dancer2/archive/master.zip');
