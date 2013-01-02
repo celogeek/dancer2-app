@@ -184,7 +184,7 @@ sub _init_git {
     $r->run(add => '.');
     $r->run(commit => '-m', 'init dancer2 project');
     say "Fetching vendors/Dancer2";
-    $r->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2');
+    Git::Repository->run(submodule => 'add', 'git://github.com/PerlDancer/Dancer2.git', 'vendors/Dancer2', {cwd => $dest});
     $r->run(commit => '-m', 'plug git dancer2 head');
     return;
 }
